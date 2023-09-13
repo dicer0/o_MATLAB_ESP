@@ -1,0 +1,205 @@
+clc
+clear all
+close all
+
+%imread(ruta): El comando imread sirve para leer una imagen y convertirla a 
+%un cubo matricial de 3 dimensiones, que prácticamente se ve como un cubo, 
+%del cubo de colores se tienen 3 capas, osea 3 matrices una encima de otra, 
+%todas con el mismo número de filas y columnas, de este cubo se extraen las 
+%distintas capas para obtener los colores RGB.
+IMA = imread('C:\Users\diego\OneDrive\Documents\MATLAB\Sistemas de Vision Artificial\img\Squirtle.jpeg');
+figure(1), imshow(IMA)
+title('Imagen Original RGB - Cubo Matricial 3D')
+
+%HISTOGRAMA:
+%El Histograma es una gráfica 2D que busca describir los tonos de cada capa 
+%de una imagen, para ello primero se deben obtener las capas RGB de la 
+%imagen. Los ejes del histograma describen lo siguiente:
+%   - Eje horizontal: El eje horizontal siempre va de de 0 a 255 y describe
+%   todos los tonos de cada color en la capa, ya sea R, G o B que puede
+%   adoptar un pixel de una imagen.
+%   - Eje vertical: En el eje vertical aparece el número de pixeles que
+%   tienen el mismo tono de color en la imagen.
+%Para analizar de forma correcta los histogramas se deben analizar las 
+%capas RGB de la imagen por separado.
+
+%EXTRACCIÓN DE LAS CAPAS ROJA, VERDE Y AZUL DE LA IMAGEN:
+R = IMA(:,:,1); %Extracción de todas las filas y columnas de la capa 1
+G = IMA(:,:,2); %Extracción de todas las filas y columnas de la capa 2
+B = IMA(:,:,3); %Extracción de todas las filas y columnas de la capa 3
+%Dimensionamiento de la matriz obtenida, solo se saca de una de las
+%capas de la imagen porque estas deben ser del mismo tamaño todas y se
+%guarda en las variables filas y columnas obtenidas con el método size
+%aplicado a la matriz R que primero devuelve el número de filas y luego el
+%número de columnas, todas las capas RGB son matrices 2D de cierto tamaño
+%que dependen 100% de la resolución de la imagen.
+[filas, columnas] = size(R);
+%Declaración del vector que almacena el valor de color de todos los pixeles
+%de la capa R, G y B de la imagen, en un inicio se llenan de ceros y tienen 
+%un tamaño de 1 fila y 256 columnas, se tienen 256 columnas porque los
+%valores van de 0 a 255 para describir cada color R, G o B en el histograma.
+HISTO_R = zeros(1,256);
+HISTO_G = zeros(1,256);
+HISTO_B = zeros(1,256);
+
+%Ciclo for para observar el valor del color de cada uno de los pixeles de
+%las capas R, G y B, que son matrices, el bucle empieza en 1 y pasa por 
+%todas las filas de la matriz primero, luego pasará por todas las columnas 
+%para meterlas en un vector de 1 fila y 256 columnas (que almacenan valores 
+%de 0 a 255).
+for i = 1:filas
+    for j = 1:columnas
+        %El ambiente de MATLAB mide el color de 1 a 256, por eso se debe
+        %sumar +1 al valor obtenido, para ello se toma el valor de la
+        %matriz R en su fila i y columna j, que es un dato entero de 8 bits
+        %osea un valor de tipo uint8, ese valor es al que se le suma 1 y
+        %esto se debe guardar en el vector HISTO_R que tiene 1 fila y 256
+        %columnas, por eso la operación se pone solo en las columnas, en la
+        %parte izquierda se indica la posición del vector y en la parte
+        %derecha se indica el valor que se guardará ahí, esto crea igual el
+        %eje vertical del histograma donde la altura de la gráfica indica
+        %cuantas veces sale el mismo valor en la serie de pixeles de la
+        %imagen.
+        HISTO_R(1, (R(i,j)+1)) = HISTO_R(1, (R(i,j)+1))+1;
+        %Lo mismo se hace con las posiciones de las demás capas de la
+        %imagen
+        HISTO_G(1, (G(i,j)+1)) = HISTO_G(1, (G(i,j)+1))+1;
+        HISTO_B(1, (B(i,j)+1)) = HISTO_B(1, (B(i,j)+1))+1;
+    end
+end
+%Luego se graficará lo que recopiló de la imagen:
+figure(2), 
+%Se usa el comando hold on y hold off para mostrar más de una gráfica en 
+%un mismo figure, en específico las 3 gráficas R,G,B.
+hold on 
+plot([0:255], HISTO_R, 'r')
+plot([0:255], HISTO_G, 'g')
+plot([0:255], HISTO_B, 'b')
+hold off
+title('Histogramas Capas R, G y B - Gráfica')
+%La interpretación del resultado del histograma en las capas es que:
+%Cada capa RGB de la imagen cuando se descompone va de 0 a 255, esto
+%es porque en cada capa mientras más se acerque al valor 255 (osea al 
+%blanco) es porque más presente se encuentra el color de esa capa en la 
+%imagen original, por lo cual en el histograma la gráfica que más se 
+%acerque al 255 en el eje horizontal es la que representa el color que más 
+%se encuentra presente en la imagen, no importando su amplitud, ya que la 
+%amplitud representa cuantos pixeles cuentan con el mismo tono de cada 
+%color RGB.
+
+%Esto se hace para mostrar las 3 imágenes con cada capa R,G,B en un mismo
+%figure.
+figure(3), imshow([R,G,B])
+title('Capas R, G y B - Matrices 2D')
+
+
+
+
+%PROMEDIO DE LOS HISTOGRAMAS: Se encuentra el promedio para ver qué color
+%predomina más en la imagen original.
+%find(): El método lo que hace es encontrar los índices del vector dado en 
+%su paréntesis donde se cumpa la condición dada, en este caso se quiere
+%encontrar el índice horizontal de las columnas de los vectores RGB donde 
+%el valor sea distinto a cero (~=), esto porque en esos índices es donde se
+%encuentra la intensidad del color encontrado en la imagen. Se le resta uno
+%a el valor encontrado de los índices porque los índices van de 1 a 256 y
+%la intensidad del color se mide de 0 a 255.
+
+%sum(): El método realiza una sumatoria de todos los elementos en las 
+%columnas de un vector.
+
+%length(): El método obtiene el número de elementos del vector, primero
+%devuelve el número de filas y luego el número de columnas si se aplica a
+%una matriz, si se aplica a un vector devuelve simplemente el número de
+%columnas.
+
+%PROMEDIO ROJO:
+xR = find(HISTO_R~=0)-1;
+PROM_R = sum(xR)/length(xR);
+HISTO_PROM_R = zeros(1,256);
+%PROMEDIO VERDE:
+xG = find(HISTO_G~=0)-1;
+PROM_G = sum(xG)/length(xG);
+HISTO_PROM_G = zeros(1,256);
+%PROMEDIO AZUL:
+xB = find(HISTO_B~=0)-1;
+PROM_B = sum(xB)/length(xB);
+HISTO_PROM_B = zeros(1,256);
+
+%Bucle for para crear un vector con el resultado del promedio de las capas:
+n = length([0:255]);
+for k = 1:n
+    HISTO_PROM_R(1, k) = PROM_R;
+    HISTO_PROM_G(1, k) = PROM_G;
+    HISTO_PROM_B(1, k) = PROM_B;
+end
+
+%Muestra de los promedios en una señal constante: Esto para que se vea de
+%forma visual cual color primario RGB es el que predomina en la imagen.
+figure(4),
+hold on 
+plot([0:255], HISTO_PROM_R, 'r')
+plot([0:255], HISTO_PROM_G, 'g')
+plot([0:255], HISTO_PROM_B, 'b')
+xlim([0 255])
+ylim([0 255])
+hold off
+title('Promedios Capas R, G y B - Gráfica')
+
+%Creación de una matriz 3D para mostrar en un figure el color promedio
+%rellenando la matriz 3D con el valor de los promedios RGB en sus
+%respectivas capas y mostrándolo con el método imshow sin olvidar antes
+%transformarlo a formato entero de 8 bits: uint8().
+RGB_PROM = zeros(256, 256, 3);
+for s = 1:256
+    for t = 1:256
+        RGB_PROM(s, t, 1) = PROM_R;
+        RGB_PROM(s, t, 2) = PROM_G;
+        RGB_PROM(s, t, 3) = PROM_B;
+    end
+end
+%Figure que muestra la matriz 3D con el valor de los promedios RGB.
+figure(5), imshow(uint8(RGB_PROM))
+title('Color Promedio R, G y B - Cubo Matricial 3D')
+
+
+
+
+%CENTROIDE DE LOS HISTOGRAMAS: La coordenada x de los histogramas es la 
+%misma que se encontró para el promedio de las gráficas.
+%COORDENADA HORIZONTAL CENTROIDE ROJO:
+XcR = PROM_R;
+%COORDENADA HORIZONTAL CENTROIDE VERDE:
+XcG = PROM_G;
+%COORDENADA HORIZONTAL CENTROIDE AZUL:
+XcB = PROM_B;
+
+%La coordenada y se obtiene por medio del promedio de los valores obtenidos
+%en el eje vertical, para ello primero se encuentran los índices de los
+%valores donde el eje vertical es dintinto de cero (~=) y luego se evalúa 
+%el vector en esos índices para finalmente dividir su suma entre el número 
+%de valores en el eje vertical del histograma que son distintos a cero.
+%COORDENADA VERTICAL CENTROIDE ROJO:
+Ind_yR = find(HISTO_R~=0);
+yR = HISTO_R(Ind_yR);
+YcR = sum(yR)/length(yR);
+%COORDENADA VERTICAL CENTROIDE VERDE:
+Ind_yG = find(HISTO_G~=0);
+yG = HISTO_G(Ind_yG);
+YcG = sum(yG)/length(yG);
+%COORDENADA VERTICAL CENTROIDE AZUL:
+Ind_yB = find(HISTO_B~=0);
+yB = HISTO_B(Ind_yB);
+YcB = sum(yB)/length(yB);
+
+%Figure que muestra las gráficas de histogramas RGB con sus centroides.
+figure(6), 
+hold on 
+plot([0:255], HISTO_R, 'r')
+plot(XcR, YcR, 'ro')
+plot([0:255], HISTO_G, 'g')
+plot(XcG, YcG, 'go')
+plot([0:255], HISTO_B, 'b')
+plot(XcB, YcB, 'bo')
+hold off
+title('Histogramas Con sus Centroides Capas R, G y B - Gráfica')

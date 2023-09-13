@@ -1,0 +1,76 @@
+%ANÁLISIS DE ELEMENTO FINITO: NODOS DE UNA ESTRUCTURA 2D
+%Fuerzas de Reacción y Esfuerzos Axiales en Estructuras 2D con MATLAB Ej 1:
+%Estructuras 2D Esfuerzos y Fuerzas - 1 Nodo, 2 Grados de Libertad
+E1=200e9;   %Módulo de Elasticidad barra 1
+E2=E1;      %Módulo de Elasticidad barra 2
+
+L1=1.4142;%Longitud cable AB
+L2=1;%Longitud cable AC
+
+A1=4e-4;%Área secc transversal cable AB
+A2=2e-4;%Área secc transversal cable AC
+
+theta1=180-30;%ángulo en grados medido desde el eje positivo x del cable AB
+theta2=45;%ángulo en grados medido desde el eje positivo x del cable AC
+
+%Obtención de las matrices de rigidez de la estructura 2D
+k1=a_MatrizRigidezEstructura2D(E1,A1,L1,theta1);
+k2=a_MatrizRigidezEstructura2D(E2,A2,L2,theta2);
+
+%Cada uno de estos se saca con el #de nodos por el #de grados de libertad
+%de cada uno, tenemos 3 nodos con 2 grados de libertad cada uno
+K=zeros(6,6);
+
+%CREAR MIS ELEMENTOS
+K=b_EnsambleMatricesRigidez_y_MatrizGlobal_K(K,k1,1,2);
+%Esto dice que el elemento 1, osea el cable AB va del nodo 1 al 2
+%El nodo A es el nodo 1 
+%El nodo B es el nodo 2 
+%El nodo C es el nodo 3
+
+K=b_EnsambleMatricesRigidez_y_MatrizGlobal_K(K,k2,1,3);
+%Esto dice que el elemento 2, osea el cable AC va del nodo 1 al 3
+
+%VAMOS A REALIZAR LA OPERACIÓN
+%K{Q}={R}, donde Q son los desplazamientos de cada uno de los grados de
+%libertad y R son las reacciones en cada nodo
+%Q3=0, Q4=0, por eso eliminamos la filas y columnas 3 y 4
+%También Q5=0, Q6=0 por eso igual eliminamos la filas y columnas 5 y 6 
+%Tomamos las filas y columnas que no hayamos eliminado
+%Extraeremos el sistema y lo guardaremos en un subsistema llamado k
+
+%Con K(1:2, ...) sacamos de la fila 1 a la 2 de la matriz K
+%Con K(..., 1:2) sacamos de las columnas 1 a la 2
+k=[K(1:2,1:2)];
+
+%Estos son los valores de las fuerzas externas
+f=[0;-33.46e3];
+
+%Con esto se calculan los desplazamientos pero en sus coordenadas xy
+q=k\f;
+
+%Esta sería la magnitud del desplazamiento
+%Lo multiplico por 1e3 para que el resultado aparezca en mm
+desplazamiento=sqrt(q(1)^2+q(2)^2)*1e3;
+
+%Cuando se quite el punto y coma al final de la operación, esta aparecerá
+%en pantalla cuando se ejecute el programa
+%Este es el vector global de desplazamientos
+Q=[q(1);q(2);0;0;0;0]
+
+%Con esto se calculan las fuerzas de reacción en los apoyos en kN
+F=(K*Q)/1e3
+
+%Ahora retomo los grados de libertad en los nodos de cada elemento para
+%calcular el esfuerzo.
+%El elemento 1 tiene 2 nodos cada uno con 2 grados de libertad cada uno
+u1=[q(1);q(2);0;0];
+%Con esto calculamos el esfuerzo del elemento 1, osea el cable AB
+%Lo dividimos entre 1e6 para que se vea como MPa el resultado
+s1=c_VectorEsfuerzoAxialEstructura2D(E1,L1,theta1,u1)/1e6
+
+%El elemento 1 tiene 2 nodos cada uno con 2 grados de libertad cada uno
+u2=[q(1);q(2);0;0];
+%Con esto calculamos el esfuerzo del elemento 2, osea el cable AC
+%Lo dividimos entre 1e6 para que se vea como MPa el resultado
+s2=c_VectorEsfuerzoAxialEstructura2D(E2,L2,theta2,u2)/1e6

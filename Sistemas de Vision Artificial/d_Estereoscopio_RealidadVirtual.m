@@ -1,0 +1,113 @@
+clc
+clear all
+close all
+
+
+
+%ESTEREOSCPIO: Esto se refiere a calcular la posición medida de un objeto 
+%3D real al ser analizado desde dos cámaras distintas derecha e izquierda, 
+%simulando así el comportamiento del ojo humano real, al considerar en el 
+%cálculo la distancia de separación real entre las cámaras (d), la 
+%distancia de profundidad real entra las cámaras y el objeto (Z) y el foco 
+%virtual, que es la profundidad medida en pixeles desde donde se encuentra 
+%la cámara en el mundo real a donde se encuentra la imagen virtual.
+
+%El comando imread sirve para leer una imagen y convertirla a matrices 3D.
+IMAI=imread('C:\Users\diego\OneDrive\Documents\MATLAB\Sistemas de Vision Artificial\img\1_Estereoscopio\Left Image 0.png');
+IMAD=imread('C:\Users\diego\OneDrive\Documents\MATLAB\Sistemas de Vision Artificial\img\1_Estereoscopio\Right Image 0.png');
+
+
+
+%IMAGEN VIRTUAL: La imagen virtual es un punto físico en donde se encuentra 
+%la imagen del objeto captado por la cámara, esto implica que en alguna 
+%parte física se encuentra una imagen del objeto tridimensional a una 
+%distancia de separación entre la cámara y la imagen virtual dada en 
+%pixeles que de hecho es descrita por el foco virtual. Esta distancia del 
+%foco dada en pixeles es distinta a la distancia de separación real entre 
+%el objeto y la cámara dada en metros, cm, mm, etc. que es la que nos
+%sirve.
+
+%Size: Método que obtiene el tamaño de las escalas de grises de las 
+%matrices 2D que representan las imágenes, para así saber el número de 
+%columnas y filas que tienen.
+[fil,col]=size(IMAI);
+
+%Se divide entre dos el tamaño de columnas y filas encontradas porque se
+%considera que existen dos imagenes distintas, la imagen vista desde la
+%cámara derecha y la vista desde la cámara izquierda:
+%IMAGEN VIRTUAL IZQUIERDA: Representa la imagen vista desde el lado 
+%izquierdo y es la mitad de la matriz de escala de grises. Se llena en dos 
+%partes, primero de filas y luego de columnas.
+IMAI(:,col/2)=zeros(fil,1); %Matriz vacía con varias filas y 1 columna.
+IMAI(fil/2,:)=zeros(1,col); %Matriz vacía con 1 fila y varias columnas.
+%IMAGEN VIRTUAL DERECHA: Representa la imagen vista desde el lado 
+%derecho y es la mitad de la matriz de escala de grises. Se llena en dos 
+%partes, primero de filas y luego de columnas.
+IMAD(:,col/2)=zeros(fil,1); %Matriz vacía con varias filas y 1 columna.
+IMAD(fil/2,:)=zeros(1,col); %Matriz vacía con 1 fila y varias columnas.
+
+
+
+%COORDENADAS DEL MUNDO VIRTUAL: 
+%Las coordenadas del mundo virtual son dadas en pixeles y representan el 
+%punto donde se encuentra el objeto en la imagen virtual, visto desde la 
+%cámara izquierda y derecha.
+%impixel(matriz): Método que permite obtener la ubicación xy en pixeles de 
+%algún punto cualquiera en una imagen.
+%Por lo tanto lo que se debe hacer es en ambas imágenes seleccionar
+%un mismo punto visto del objeto tridimensional pero en las dos imágenes
+%vistas desde las dos cámaras diferentes.
+
+%Coordenadas del mundo virtual dadas en pixeles de la imagen vistas desde
+%la cámara izquierda, este punto tiene las coordenadas: P_izq = xi,yi.
+[xi, yi, P]=impixel(IMAI);
+xi=xi-col/2;
+yi=fil/(2-yi);
+%Coordenadas del mundo virtual dadas en pixeles de la imagen vistas desde
+%la cámara derecha, este punto tiene las coordenadas: P_der = xd,yd.
+[xd, yd, P]=impixel(IMAD);
+xd=xd-col/2;
+yd=fil/(2-yd);
+
+
+
+%FOCO VIRTUAL: El foco es una constante que se calcula de forma 
+%experimental y representa la profundidad medida en pixeles desde donde 
+%se encuentra la cámara a donde se encuentra la imagen virtual del objeto, 
+%la forma en la que esto se calcula es primero usando las fórmulas donde 
+%se cuenta con:
+%   d = Distancia entre cámaras.
+%   Z = Profundidad de las cámaras hasta el objeto a analizar en la imagen.
+%   f = (zmedido*(xi-xd))/d = Foco Virtual todavía no calculado.
+%En el siguiente ejemplo para sacar el foco: 
+%   - Primero se midió la distancia de separación entre la cámara y el 
+%   objeto donde se tiene que: Z = 30 cm.
+%   - Luego se midió la distancia de separación entre las cámaras derecha e 
+%   izquierda donde se tiene que: d = 20 cm.
+%Una vez corrido varias veces el programa se obtiene el valor de la
+%constante que describe la distancia en pixeles del foco, se saca un 
+%promedio de los resultados obtenidos para acercarse más al resultado real.
+%Ya habiendo encontrado el valor del foco se comenta la línea de código 51 
+%para ahora solo indicar el valor del foco calculado, al hacer esto ahora
+%se podrá calcular el valor real de la profundidad real Z entre el objeto
+%tridimensional y las dos cámaras derecha e izquierda que deben estar
+%alineadas a la misma altura entre ellas.
+d = 20;
+zmedido = 30;
+% f=(zmedido*(xi-xd))/d %f=195
+f = 195;
+
+
+
+%PROFUNDIDAD REAL: Z es la profundidad del mundo real entre las cámaras 
+%izquierda y derecha (que deben estar alineadas entre sí a la misma altura) 
+%y el objeto tridimensional, este valor se obtiene por medio del valor del 
+%foco calculado de forma experimental.
+
+%Cuando se quiera calcular Z se debe dejar el foco calculado
+%experimentalmemte como constante y comentar la fórmula con la que se
+%obtuvo, la coordenada x encontrada en el cálculo es la posición en x
+%encontrada desde el punto medio de las dos cámaras hasta el objeto
+%tridimensional.
+z=(f*d)/(xi-xd)
+x=(z*xi/f)-(d/2)

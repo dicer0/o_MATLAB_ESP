@@ -1,0 +1,79 @@
+clc
+clear all
+close all
+%TRANSFORMADA DE FOURIER APLICADA A UNA IMAGEN:
+%imread(ruta): Comando para leer una imagen y convertirla a matrices de 3
+%dimensiones, que prácticamente se ve como un cubo, del cubo de colores se 
+%tienen 3 capas, osea 3 matrices una encima de otra, todas con el mismo
+%número de filas y columnas, de este cubo se extraen las distintas capas
+%para obtener los colores RGB.
+IMA = imread('C:\Users\diego\OneDrive\Documents\MATLAB\Sistemas de Vision Artificial\img\Bulbasaur.jpeg');
+
+%rgb2gray(imagen): Comando que extrae el cubo matricial de la imagen 
+%obtenida con el comando imread  previamente y hace un tipo de promedio con 
+%todos los colores para obtener una escala de grises que no le de prioridad 
+%a ningún color R, G o B en específico, se convierte a double para que se 
+%pueda realizar operaciones con él.
+f = double(rgb2gray(IMA));
+
+%Dimensionamiento de la matriz obtenida, solo se saca de una de las
+%capas de la imagen porque estas deben ser del mismo tamaño todas y se
+%guardan en las variables filas y columnas obtenidas con el método size
+%aplicado a la matriz R que primero devuelve el número de filas y luego el
+%número de columnas, todas las capas RGB son matrices de cierto tamaño
+%obtenidas de la imagen con el método imread, el cual devuelve una matriza 
+%en forma de cubo con 3 capas, de esta se deben extraer los datos para
+%colocarlas en un vector y puedan ser graficadas.
+[filas, columnas]=size(f);
+figure(1), imshow(uint8(f))
+title('Imagen en Escala de Grises - Matriz 2D')
+
+%Se aplica una función a todos los pixeles de la imagen para poder ver las
+%frecuencias de la imagen en el centro de una imagen 3D.
+for i=1:filas
+    for j=1:columnas
+        f(i,j)=((-1)^(i+j))*f(i,j);
+    end
+end
+
+%Transformada de fourier aplicada a la función aplicada a la imagen de
+%grises, esto para obtener los picos de las frecuencias, donde del centro 
+%de la gráfica 3D salgan las bajas frecuencias y hacia fuera se encuentren 
+%las altas frecuencias.
+F = fft2(f);
+figure(2), mesh(abs(F))
+title('Trans Fourier - Img Escala de Grises - Visión 3D con Comando mesh')
+
+%Se va a crear una imagen con un círculo negro o blanco en función de las
+%frecuencias de la imagen, este círculo estará fuera del origen para que
+%aparezca en el centro del figure, la animcación creada con el bucle se
+%puede detener dando clic CTRL + C en el command window.
+for R=0:columnas
+    for i=1:filas
+        for j=1:columnas
+            if (i-filas/2)^2+(j-columnas/2)^2>R^2
+                FILTRO(i,j)=1;
+            else
+                FILTRO(i,j)=0;
+            end
+        end
+    end
+    %La función FILTRO retorna: 
+    figure(3), imshow(FILTRO)
+    title('Círculo del Filtro - Matriz 2D, Visión Plana')
+    %Se multiplica lo obtenido con la función FILTRO por la función F
+    %obtenida al aplicar la transformada de fourier a la función f que
+    %obtiene la escala de grises de la imagen original.
+    FILTRADA=FILTRO.*F;
+    %Con el comando real solo devolvemos la parte real de un número
+    %complejo, en específico esta vez se aplica a la transformada de 
+    %fourier inversa hecha con el comando ifft2 al resultado del filtro por
+    %la transformada de fourier F, a todo lo anterior se aplica el método 
+    %abs para obtener puro resultado positivo de la operación.
+    fr=abs(real(ifft2(FILTRADA)));
+    figure(4), imshow(uint8(fr))
+    title(strcat('Filtro de Transformada de Fourier: Radio = ', num2str(R)))
+    %drawnow se usa para mostrar una animación respecto a alguna variable
+    %del bucle for, en este caso la variable R.
+    drawnow
+end

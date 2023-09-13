@@ -1,0 +1,109 @@
+clc
+clear all
+close all
+
+%RECONOCIMIENTO DE PATRONES CON NEURONAS COMPETITIVAS (COMPET) PARA 
+%IDENTIFICACIÓN DE ROSTROS: Se realiza por medio de la función de 
+%transferencia neuronal compet().
+num_imagenes = 36;      %Imágenes a analizar con 8 personajes distintos.
+for i = 1:num_imagenes
+    %strcat(): Método que permite concatenar horizontalmente el texto en 
+    %sus argumentos de entrada.
+    ruta = strcat('C:\Users\diego\OneDrive\Documents\MATLAB\Sistemas de Vision Artificial\img\2_NeuronaCompetRostros\P', num2str(i), '.jpg');
+    %imread(): comando para leer una imagen y convertirla a matrices de 3 
+    %dimensiones, que prácticamente se ve como un cubo, del cubo de colores 
+    %se obtienen 3 capas, osea 3 matrices una encima de otra, todas con el 
+    %mismo número de filas y columnas, de este cubo se extraen las 
+    %distintas capas para obtener los colores RGB.
+    IMA = imread(ruta);
+    %rgb2gray(): Comando que extrae el cubo matricial de la imagen obtenida 
+    %con imread  y hace un tipo de promedio con todos los colores para 
+    %obtener una escala de grises que no le da prioridad a ningún color 
+    %R, G o B en específico.
+    f = rgb2gray(IMA);
+    %reshape(): Comando que acomoda todos los elementos de una matriz, 
+    %tomandolos de arriba hacia abajo por cada columna para acomodarlos de 
+    %izquierda a derecha en un vector, a este se le indica el número de 
+    %filas y luego el de columnas, el comando rgb2gray en este ejemplo es 
+    %de una imagen de 300X300 pixeles, por lo que se obtienen 90000 
+    %columnas, donde recordemos lo que representan las columnas y filas:
+    %: = Cantidad de elementos, osea el número de filas.
+    %i = Cantidad de patrones, osea el número de columnas.
+    P(:,i)= reshape(double(f), 90000, 1);
+    %Se muestra la imagen de cada uno de los rostros analizados.
+    figure(1), imshow(f)
+    title('Lectura de Imágenes')
+end
+
+%Se analiza 8 personajes con distintas expresiones o lentes en las
+%imagenes, esto para que pueda reconocer cual de los personajes es el que 
+%se está mostrando, con el número NP se hace el entrenamiento de la neurona 
+%en cierto número de imagenes, en este caso son 8 fotos de rostros.
+Personajes = 8;     %8 Rostros de personajes.
+for i=1:Personajes
+    %De esta forma se obtiene el vector en su forma unitaria de cada uno de
+    %los vectores descritos en la matriz P, que organizó todos los pixeles
+    %de cada imagen en sus columnas, teniendo así varios patrones que
+    %representan cada una de las imágenes.
+    
+    %W: Es una matriz que guarda los valores unitarios de la matriz y
+    %representa el peso (weight) de la conexión neuronal, los pesos son 
+    %parámetros importantes en una red neuronal, ya que se multiplicaran 
+    %con los datos de entrada "X" y con las salidas de las neuronas de la 
+    %capa anterior "A", cada parametro W es diferente para cada neurona ya 
+    %que en estos parametros se guardan los patrones que la neurona 
+    %aprendió sobre los datos introducidos anteriormente.
+    
+    %norm(): El método norm devuelve la magnitud de un vector, donde la
+    %fórmula es: %norma_vector = √Σv1^2+...+vn^2
+    W(:,i)=P(:,i)/norm(P(:,i));
+end
+
+%REDES NEURONALES COMPETITIVAS (COMPET): Este tipo de redes a diferencia de
+%los demás tipos donde las neuronas colaboran entre sí de manera que a
+%través del aprendizaje se pueda dar una representación al patrón de
+%entrada, en el caso de una red competitiva las neuronas compiten unas con
+%otras de manera que solo una se activará al final, dicho de otra manera,
+%solo esta neurona será capaz de representar el patrón de entrada.
+for i=1:num_imagenes
+    %Ahora para obtener los patrones se pone W transpuesta y se multiplica 
+    %por PP que es el valor de los pesos de la neurona.
+    %A la variable "a" se le llama axon neuronal y es la que irá
+    %identificando quién de los 8 personajes es el que se encuentra en la
+    %imagen analizada.
+    a=compet(W'*(P(:,i)/norm(P(:,i)))) %PP=PP/norm(PP); a=compet(W'*PP)
+    
+    %max(): Comando que devuelve el valor que sea mayor y la posición donde 
+    %se encuentra.
+    [b,c]=max(a);
+    
+    %Dentro de una nueva ventana se muestra todas las imágenes introducidas
+    %en la neurona compet con todo y su nombre identificado, no importando
+    %que sea una foto distinta del mismo personaje, pudiendo así ya
+    %identificar rostros.
+    figure(2)
+    subplot(6,6,i),imshow(reshape(uint8(P(:,i)),300,300));
+    switch(c)
+        case 1
+            title('Policia Malo')
+        case 2
+            title('Emmet')
+        case 3
+            title('Sr. Negocios')
+        case 4
+            title('Lucy')
+        case 5
+            title('Frank')
+        case 6
+            title('Benny')
+        case 7
+            title('Skelegro')
+        otherwise
+            title('Batman')
+    end
+end
+
+%Del axon neuronal se obtienen dos valores, el que me va a servir para
+%la identificación es el de las columnas, guardado en la variable c.
+b   %Filas del axon neuronal.
+c   %Columnas del axon neuronal.
