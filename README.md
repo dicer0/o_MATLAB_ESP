@@ -6,7 +6,7 @@
     <li>_ESP means that the documentation is in Spanish.</li>
   </ul>
 </h6>
-And this specific repository contains documentation on MATLAB software, which is used as a matrix calculator, control and/or simulation of differential equations, system modeling, artificial vision, etc.
+And this specific repository contains documentation about the MATLAB software, which is used as a matrix calculator, control and/or simulation of differential equations, system modeling, artificial vision, etc.
 &nbsp;
 <br/>
 &nbsp;
