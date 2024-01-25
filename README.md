@@ -11,4 +11,4 @@ And this specific repository contains documentation about the MATLAB software, w
 <br/>
 &nbsp;
 
-[![Altium Designer](http://dicer0.com/wp-content/uploads/2023/09/o_MATLAB.png)](https://dicer0.com/#skills)
+[![MATLAB](http://dicer0.com/wp-content/uploads/2023/09/o_MATLAB.png)](https://dicer0.com/#skills)
